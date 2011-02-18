@@ -11,7 +11,7 @@ class build_resources(Command):
     description = "Build any css and js resources"
     user_options = [('zip', 'z', 'use zip to compress'),
                     ('path', 'p', 'path to build'),
-                    ('qualifier', 'q', 'what it is')]
+                    ('qualifier', 'q', 'what it is. Differentiate from the archive for the python package')]
 
     def initialize_options(self):
         self.zip = False
@@ -22,14 +22,14 @@ class build_resources(Command):
         pass
 
     def run(self):
-        if self.distribution.build_ass_requires:
-            self.distribution.fetch_build_eggs(self.distribution.build_ass_requires)
         self.build_assets()
 
     def build_assets(self):
         from path import path
         folder = path('.').abspath() / self.path
         dist = path('.').abspath() / 'dist'
+        if not dist.exists():
+            dist.mkdir()
         version = self.distribution.get_version()
         name = self.distribution.get_name()
         outdir = path(dist / "%s-%s-%s" %(name, version, self.qualifier))
@@ -41,7 +41,7 @@ class build_resources(Command):
         with pushd(folder):
             with tarfile.open(archive, "w:gz") as gz:
                 for sdir in path('.').dirs():
-                    gz.add(sdir)
+                    gz.add(sdir, arcname="%s/%s" %(version, sdir.name))
         print archive.abspath()
 
 
